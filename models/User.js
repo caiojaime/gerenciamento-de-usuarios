@@ -2,6 +2,7 @@ class User {
 
     constructor(name, gender, birth, country, email, password, photo, admin){
 
+        this._id;
         this._name = name;
         this._gender = gender;
         this._birth = birth;
@@ -12,6 +13,10 @@ class User {
         this._admin = admin;
         this._register = new Date();
 
+    }
+
+    get id() {
+        return this._id;
     }
     
     get register() {
@@ -49,4 +54,92 @@ class User {
         return this._admin;
     }
 
+    loadFromJASON(json){
+
+        for (let name in json) {
+
+            switch(name){
+                case '_register':
+                    new Date(json[name]);
+                break;
+                
+                default:
+                this[name] = json[name];
+                break;
+            }
+               
+        }
+    }
+
+    // Check if there are already registered users in the Storage session and create an array of users.
+   static getUsersStorage(){
+
+        let users = [];
+
+        if (localStorage.getItem("users")) {
+
+            users = JSON.parse(localStorage.getItem("users"));
+        }
+        return users;
+    }
+
+    //  Generates the ID number.
+    getNewId() {
+
+        let usersId = parseInt(localStorage.getItem("usersId"));
+
+        if (!usersId > 0) { 
+            usersId = 0; 
+        }
+        usersId++;
+
+        localStorage.setItem("usersId", usersId);
+
+        return usersId;
+    }
+
+    // Save user data to localStorage.
+    save(){
+
+        let users = User.getUsersStorage();
+
+        if (this.id > 0) {
+
+            users.map(idUser => {
+
+                if (idUser._id === this.id) {
+
+                    Object.assign(idUser, this);
+                }
+                return idUser ;
+
+            });
+    
+        } else {
+
+            this._id = this.getNewId();
+
+            users.push(this);
+        }
+
+        localStorage.setItem("users", JSON.stringify(users));
+    }
+
+    // Delete users from the localStorage
+    remove(){
+
+        let users = User.getUsersStorage();
+
+         users.forEach((userData, index) => {
+
+            if (this._id == userData._id){
+
+                users.splice(index, 1);
+            }
+             
+         });
+
+         localStorage.setItem("users", JSON.stringify(users));
+
+    }
 }
